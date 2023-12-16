@@ -1,0 +1,220 @@
+setwd("/Users/raf/Documents/STAT R")
+db<-read.csv("Opinion.csv")
+
+library("forcats")
+library(lessR)
+library(ggplot2)
+library(dplyr)
+library(hrbrthemes)
+library(viridis)
+
+
+###analyse de la variable loc
+
+length(db$loc)
+
+library("forcats")
+library(lessR)
+
+eloc<-table(db$loc)
+PieChart(eloc, hole = 0, values = "%",
+         fill = c("purple", "brown"), main = "Proportion de locataire")
+
+percentage<-prop.table(table(db$loc))
+dfloc<-data.frame(X=db$X,loc=db$loc)
+ggplot(dfloc, aes(x=loc))+
+  geom_bar(alpha=0.7,width = 0.5, fill = c("orange","purple")) +
+  ggtitle("quantité de locataires et non locataires") +
+  ylab("effectifs") + 
+  xlab("locataires ?") +
+  theme_ipsum()
+
+nn<-length(db$loc) #calcule l'effectif total (longueur de la variable)
+efn<-table(db$loc) #crée la d.o.
+efcn<-cumsum(efn) #établit les effectifs cumulés
+frn<-(efn/nn)*100 #calcule les fréquences en pourcent
+frcn<-cumsum(frn) #établit les fréquences cumulées
+tabledocn<-cbind(efn,efcn,frn,frcn) #crée la table complète de la distribution
+print(tabledocn) #affiche la table
+write.csv(tabledocn,"tabledocn.csv") #enregistre la table au format csv
+
+
+db$loc_weight <- ifelse(db$loc == "non", 1 / 0.52, 1 / 0.48)
+verif <- lm(db$revenu ~ db$loc, data = db, weights = loc_weight)
+print(model)
+
+### Variable revenu
+
+head(db$revenu)
+
+hist(db$revenu,breaks=70,col = topo.colors(70),main="visualisation graphique des revenus", ylab = "effectifs", xlab = "revenu (€)")
+boxplot(db$revenu,main="visualisation graphique des revenus",ylab = "revenu (€)")
+
+dfrev<-data.frame(db, rev=db$revenu, X=db$X)
+ggplot(dfrev, aes(y=rev,x=X)) +
+  geom_boxplot() +
+  geom_violin(alpha=0.5,fill=topo.colors(512)) +
+  theme_ipsum() +
+  ggtitle("visualisation graphique des revenus") +
+  ylab("revenus €") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+summary(db$revenu)
+sd(db$revenu)
+print(sd(db$revenu)/mean(db$revenu),round(2))
+mean(db$revenu)
+
+# Tri des données dans l'ordre croissant
+donnees <- sort(db$revenu)
+
+# Calcul de la taille de l'échantillon
+taille <- length(donnees)
+
+# Déterminez l'indice à partir duquel vous voulez calculer la moyenne des 50 derniers pourcents
+indice_depart <- floor(0.5 * taille)
+
+# Sélectionnez les éléments à partir de cet indice jusqu'à la fin
+derniers_50_pourcents <- donnees[indice_depart:taille]
+
+# Calculez la moyenne des 50 derniers pourcents
+moyenne_derniers_50_pourcents <- mean(derniers_50_pourcents)
+
+# Affichez le résultat
+print(moyenne_derniers_50_pourcents)
+
+# Déterminez l'indice jusqu'auquel vous voulez calculer la moyenne des 50 premiers pourcents
+indice_fin <- floor(0.5 * taille)
+
+# Sélectionnez les éléments du début jusqu'à cet indice
+premiers_50_pourcents <- donnees[1:indice_fin]
+
+# Calculez la moyenne des 50 premiers pourcents
+moyenne_premiers_50_pourcents <- mean(premiers_50_pourcents)
+
+# Affichez le résultat
+print(moyenne_premiers_50_pourcents)
+
+cor(db$revenu,as.numeric(factor(db$loc)),method = "spearman",)
+plot(db$revenu,as.numeric(factor(db$loc)),type = "p")
+
+
+### Variable nati
+
+head(db$nati)
+
+df<-data.frame(opinion=db$nati,X=db$X,loc=db$loc)
+print(df)
+ggplot(df, aes(x=opinion,color=db$loc)) + 
+  geom_histogram(color="black", fill="lightblue") +
+  ggtitle("opinion sur la variable nati") +
+  ylab("effectifs") + 
+  xlab("Les pouvoirs publics doivent nationaliser le parc de logements")
+
+df1<-data.frame(
+  opinion=db$nati,
+  loc=factor(db$loc))
+ggplot(df1, aes(x=opinion, color=loc)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity")+
+  scale_color_manual(values=c("red", "black")) +
+  ggtitle("opinion sur la variable nati en fonction de la variable loc") +
+  ylab("effectifs") + 
+  xlab("Les pouvoirs publics doivent nationaliser le parc de logements")
+
+enati<-table(db$nati)
+PieChart(enati, hole = 0, values = "%",
+         fill = c(rainbow(14)), main = "Proportion de réponse à nati",
+         labs=c("a","b","c","d","ex"))
+
+
+
+### CORRELATION Revenu / march
+
+cor(db$march,db$revenu,method = "spearman")
+cov(db$march,db$revenu)
+
+dfc<-data.frame(
+  rev=db$revenu,
+  mar=db$march,
+  loc=db$loc
+)  
+
+ggplot(dfc, aes(x=mar,y=rev,color=loc)) +
+  geom_point() +
+  geom_smooth(method = lm , color="green", se=FALSE) +
+  geom_smooth(method = loess , color="red", se=FALSE) +
+  geom_jitter(alpha=0.3,color="orange") +
+  ggtitle("scatterplot entre les variables revenus et march") +
+  xlab("Les pouvoirs publics doivent laisser faire le marché pour fixer les loyers") +
+  ylab("revenus (€)") 
+
+plot(db$march, db$revenu)
+
+lm(db$revenu~db$march)
+loess(db$revenu~db$march)
+loess.smooth(db$march,db$revenu)
+
+
+### revenus et nati
+
+cor(db$revenu,db$nati,method="spearman")
+cov(db$revenu,db$nati)
+
+dfc2<-data.frame(
+  rev=db$revenu,
+  nati=db$nati
+)  
+print(dfc2)
+ggplot(dfc2, aes(x=nati,y=rev)) +
+  geom_point() +
+  geom_smooth(method = lm , color="green", se=FALSE) +
+  geom_smooth(method = loess , color="red", se=FALSE) +
+  geom_jitter(alpha=0.3,color="orange") +
+  ggtitle("scatterplot entre revenus et primesren") +
+  xlab("Les pouvoirs publics doivent nationaliser le parc de logement") +
+  ylab("revenus (€)") +
+  theme_ipsum()
+
+
+### variable revenu
+library(dplyr)
+library(hrbrthemes)
+dfr<-data.frame(revenu =db$revenu, loc=db$loc,etu=db$diplome)
+
+ggplot(dfr, aes(x=revenu)) +
+  geom_density(fill=c("lightgreen"), alpha=0.5) +
+  ggtitle("distribution des revenus") +
+  theme_ipsum() +
+  scale_color_manual(values=c("red", "black","blue","green","purple")) +
+  geom_vline(aes(xintercept=median(revenu)),
+             color="blue", linetype="dashed", size=1,alpha=0.5)
+
+
+#Pas dans le travail
+ggplot(dfr,aes(x=etu,y=revenu,fill=etu)) +
+  geom_violin() +
+  geom_boxplot(width=0.1, color="white", alpha=0.2) +
+  scale_fill_viridis(discrete = TRUE) +
+  geom_jitter(alpha=0.5)
+
+
+### IC
+
+moyenne <- mean(db$revenu)
+ecart_type <- sqrt((250/249)*var(db$revenu))
+intervalle_confiance <- c(moyenne - 1.96 * (ecart_type / sqrt(length(db$revenu))),
+                          moyenne + 1.96 * (ecart_type / sqrt(length(db$revenu))))
+print(intervalle_confiance)
+
+
+###dnzjifdbzhfbzof
+
+library(GGally)
+install.packages("GGally")
+dbp<- data.frame(revenu=db$revenu, nati=db$march, loc=db$loc, X=db$X )
+ggpairs(dbp, ggplot2::aes(color=loc))
+
+
+ggplot(dbp, aes(x=revenu , y =X) ) +
+  stat_density_2d(aes(fill = ..level..), geom = "polygon", colour="white") 
+
