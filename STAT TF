@@ -190,14 +190,6 @@ ggplot(dfr, aes(x=revenu)) +
              color="blue", linetype="dashed", size=1,alpha=0.5)
 
 
-#Pas dans le travail
-ggplot(dfr,aes(x=etu,y=revenu,fill=etu)) +
-  geom_violin() +
-  geom_boxplot(width=0.1, color="white", alpha=0.2) +
-  scale_fill_viridis(discrete = TRUE) +
-  geom_jitter(alpha=0.5)
-
-
 ### IC
 
 moyenne <- mean(db$revenu)
@@ -205,16 +197,3 @@ ecart_type <- sqrt((250/249)*var(db$revenu))
 intervalle_confiance <- c(moyenne - 1.96 * (ecart_type / sqrt(length(db$revenu))),
                           moyenne + 1.96 * (ecart_type / sqrt(length(db$revenu))))
 print(intervalle_confiance)
-
-
-###dnzjifdbzhfbzof
-
-library(GGally)
-install.packages("GGally")
-dbp<- data.frame(revenu=db$revenu, nati=db$march, loc=db$loc, X=db$X )
-ggpairs(dbp, ggplot2::aes(color=loc))
-
-
-ggplot(dbp, aes(x=revenu , y =X) ) +
-  stat_density_2d(aes(fill = ..level..), geom = "polygon", colour="white") 
-
